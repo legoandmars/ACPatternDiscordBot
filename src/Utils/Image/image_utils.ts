@@ -37,7 +37,7 @@ export namespace ImageUtils {
     }
 
     export function imageToCanvas(image: Image): Canvas{
-        let canvas = new Canvas(image.width, image.height, "png");
+        let canvas = new Canvas(image.width, image.height);
         let ctx = canvas.getContext("2d");
         ctx.drawImage(image,0,0);
         return canvas;
@@ -53,12 +53,12 @@ export namespace ImageUtils {
 
         //TODO: add multiple configurable options
 
-        let quantCanvas = new Canvas(32, 32, "png");
-        let quantCtx = quantCanvas.getContext("2d");
+        let quantCanvas: unknown = new Canvas(32, 32);
+        let quantCtx = (quantCanvas as Canvas).getContext("2d");
         quantCtx.imageSmoothingQuality = "high";
         quantCtx.drawImage(image, 0, 0, 32, 32);
 
-        let inPointContainer = utils.PointContainer.fromHTMLCanvasElement(quantCanvas);
+        let inPointContainer = utils.PointContainer.fromHTMLCanvasElement(quantCanvas as HTMLCanvasElement);
         let palette;
         let outPointContainer;
 
@@ -78,7 +78,7 @@ export namespace ImageUtils {
         let imageData = new ImageData(clampedArray, 32, 32);   
         quantCtx.putImageData(imageData, 0, 0);  
 
-        return quantCanvas;    
+        return quantCanvas as Canvas;    
         
     }
 }

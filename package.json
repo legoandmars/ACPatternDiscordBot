@@ -4,10 +4,11 @@
   "description": "Animal Crossing Pattern bot for Discord",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "author": "Bobbie",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@types/node": "^13.11.1",
     "@types/ws": "^7.2.4",

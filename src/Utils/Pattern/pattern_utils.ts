@@ -108,9 +108,9 @@ export namespace PatternUtils {
                 let outlineThickness = 2;
                 let backgroundImageOpacity = 60
                 ///
-                let tempCanvas = new Canvas(images["background"].width, images["background"].height, "png");
+                let tempCanvas = new Canvas(images["background"].width, images["background"].height);
                 let tempCtx = tempCanvas.getContext("2d");
-                let isolatedRedPixelCanvas = new Canvas(images["background"].width, images["background"].height, "png");
+                let isolatedRedPixelCanvas = new Canvas(images["background"].width, images["background"].height);
                 let isolatedRedPixelCtx = isolatedRedPixelCanvas.getContext("2d");
 
                 tempCtx.imageSmoothingEnabled = false;
@@ -125,7 +125,7 @@ export namespace PatternUtils {
                     }
                 }
                 tempCtx.putImageData(maskImageData,0,0);
-                let imageMaskBackupCanvas = new Canvas(images["background"].width, images["background"].height, "png");
+                let imageMaskBackupCanvas = new Canvas(images["background"].width, images["background"].height);
                 let imageMaskBackupCtx = imageMaskBackupCanvas.getContext("2d");
                 imageMaskBackupCtx.drawImage(tempCanvas,0,0);
 
@@ -137,7 +137,7 @@ export namespace PatternUtils {
                         imageData.data[i+1]=0;
                         imageData.data[i+2]=0;     
                     }
-                    let tempRedCanvas = new Canvas(images["background"].width, images["background"].height, "png");
+                    let tempRedCanvas = new Canvas(images["background"].width, images["background"].height);
                     let tempRedCtx = tempRedCanvas.getContext("2d");
                     tempRedCtx.putImageData(imageData,0,0);
                     tempCtx.drawImage(tempRedCanvas,-outlineThickness,0);
@@ -168,10 +168,10 @@ export namespace PatternUtils {
                     isolatedRedPixelCtx.putImageData(imageData,0,0);
                 }
                 //ctx.putImageData(imageData,50,0);
-                let canvas = new Canvas(images["background"].width, images["background"].height, "png");
+                let canvas = new Canvas(images["background"].width, images["background"].height);
                 let ctx = canvas.getContext("2d");
                 // before background image, we need to calculate the sat and val sliders.
-                let satSliderCanvas =  new Canvas(15, 1, "png");
+                let satSliderCanvas =  new Canvas(15, 1);
                 let satSliderCtx = satSliderCanvas.getContext("2d");
                 satSliderCtx.imageSmoothingEnabled = false;
                 //295, 134
@@ -182,7 +182,7 @@ export namespace PatternUtils {
                     satSliderCtx.fillRect(i, 0, 1, 1);    
                 }
 
-                let valSliderCanvas =  new Canvas(15, 1, "png");
+                let valSliderCanvas =  new Canvas(15, 1);
                 let valSliderCtx = valSliderCanvas.getContext("2d");
                 valSliderCtx.imageSmoothingEnabled = false;
                 //295, 134
@@ -247,7 +247,7 @@ export namespace PatternUtils {
                 imageWidth = correctedCanvas[1].length*896
             }
 
-            let mainInstructionCanvas = new Canvas(imageWidth,imageHeight, "png");
+            let mainInstructionCanvas = new Canvas(imageWidth,imageHeight);
             let mainInstructionCtx = mainInstructionCanvas.getContext("2d");
             for( let i = 0; i < correctedCanvas[1].length; i++){
                 let canvas = correctedCanvas[1][i];
