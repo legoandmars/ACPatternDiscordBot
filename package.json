@@ -1,0 +1,20 @@
+{
+  "name": "ac_bot",
+  "version": "1.0.0",
+  "description": "Animal Crossing Pattern bot for Discord",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bobbie",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^13.11.1",
+    "@types/ws": "^7.2.4",
+    "canvas": "^2.6.1",
+    "discord.js": "^12.1.1",
+    "dotenv": "^8.2.0",
+    "image-q": "^2.1.2",
+    "twemoji-parser": "^12.1.3"
+  }
+}

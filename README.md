@@ -1,0 +1,1 @@
+# Animal Crossing Pattern Discord Bot
