@@ -8,7 +8,7 @@ export class ExportedCommand extends Command {
 
         super("pattern");
 
-        this.description = "Creates a pattern from an image";
+        this.description = "Creates a pattern from an image.";
 
     }
 

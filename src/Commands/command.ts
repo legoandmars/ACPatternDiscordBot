@@ -38,7 +38,7 @@ export class Command implements CommandInterface{
         
         if(this.usage){
             helpEmbed.addField("**Usage**",`${parsedCommand.prefix+this.name} ${this.usage}`);
-        }
+        }else helpEmbed.addField("**Usage**",`${parsedCommand.prefix+this.name}`);
 
         let aliasesWithPrefixes: string[] = [];
         if(this.aliases){

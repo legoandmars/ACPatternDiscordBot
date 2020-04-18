@@ -6,6 +6,8 @@ export class ExportedCommand extends Command {
         super("ping");
 
         this.description = "Sends back a 'Pong!'";
+
+        this.visible = false;
     }
 
     run(command: ParsedCommand){
