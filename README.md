@@ -14,4 +14,5 @@ npm install # Install all necessary packages
 ```shell
 npm run build # Build bot in /dist/
 npm run build && npm run start # Build bot and then start it
+npm run compile # Run ESLint, build bot, and then start it
 ```
