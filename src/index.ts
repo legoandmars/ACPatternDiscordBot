@@ -1,4 +1,4 @@
-import { ColorUtils, BotUtils } from "./Utils/utils";
+import { ColorUtils, BotUtils, PatternUtils } from "./Utils/utils";
 
 require("dotenv").config({ path: `${__dirname}/../.env` });
 
@@ -25,6 +25,8 @@ client.on("ready", () => {
 
     // load up the HSV array
     ColorUtils.getHSVArray();
+
+    PatternUtils.loadPatternImages();
 });
 
 client.on("message", (message) => {

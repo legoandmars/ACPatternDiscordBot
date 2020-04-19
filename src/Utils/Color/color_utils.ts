@@ -87,7 +87,6 @@ export namespace ColorUtils {
         if(b[0]){
             b = b[0];
         } */
-
         const max = Math.max(r, g, b);
         const min = Math.min(r, g, b);
         const d = max - min;
@@ -132,8 +131,7 @@ export namespace ColorUtils {
     }
 
     export function nearestColor(needle: RGB, colors: RGB[]) {
-        // needle = parseColor(needle);
-
+        console.log(needle);
         if (!needle) {
             return null;
         }
@@ -147,12 +145,9 @@ export namespace ColorUtils {
             rgb = colors[i];
 
             distanceSq =
-                needle.r -
-                rgb.r ** 2 +
-                needle.g -
-                rgb.g ** 2 +
-                needle.b -
-                rgb.b ** 2;
+                (needle.r - rgb.r) ** 2 +
+                (needle.g - rgb.g) ** 2 +
+                (needle.b - rgb.b) ** 2;
 
             if (distanceSq < minDistanceSq) {
                 minDistanceSq = distanceSq;
@@ -164,7 +159,7 @@ export namespace ColorUtils {
             } */
             }
         }
-        // console.log("CLOSEST TO "+needle+" IS "+value);
+
         return value;
     }
 
