@@ -1,38 +1,36 @@
-import Discord from "discord.js";
-import { DiscordBotConfig, config } from "./Config/config";
-import { CommandHandler } from "./command_handler";
 import { ColorUtils, BotUtils } from "./Utils/utils";
 
-validateConfig(config);
+require("dotenv").config({ path: `${__dirname}/../.env` });
 
-const commandHandler = new CommandHandler(config.prefix);
+if (!process.env.BOTTOKEN) {
+    throw new Error(
+        "Discord bot token not specified. Please properly set up your .env file."
+    );
+}
 
-const client = new Discord.Client();
+const commandHandler = BotUtils.commandHandler;
+
+const client = BotUtils.client;
 
 client.on("ready", () => {
     console.log("Bot has started");
 
-    client.user.setPresence({ activity: { name: "type !pattern with an image attached to generate ACNH Pattern instructions" }, status: 'online' })
+    client.user.setPresence({
+        activity: {
+            name:
+                "type !pattern with an image attached to generate ACNH Pattern instructions",
+        },
+        status: "online",
+    });
 
-    //load up the HSV array
-    ColorUtils.getHSVArray()
-
-    BotUtils.client = client;
-    BotUtils.commandHandler = commandHandler;
+    // load up the HSV array
+    ColorUtils.getHSVArray();
 });
 
 client.on("message", (message) => {
-    if(message.author != client.user){
+    if (message.author !== client.user) {
         commandHandler.HandleCommand(message);
     }
 });
 
 client.login(process.env.BOTTOKEN);
-
-function validateConfig(config: DiscordBotConfig) {
-    require('dotenv').config({path: __dirname+'/../.env'});
-    if (!process.env.BOTTOKEN) {
-        throw new Error("Discord bot token not specified. Please properly set up your .env file.");
-    }
-}
-  

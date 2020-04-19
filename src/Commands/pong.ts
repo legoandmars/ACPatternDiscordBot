@@ -1,8 +1,7 @@
 import { Command, ParsedCommand } from "./command";
 
 export class ExportedCommand extends Command {
-
-    constructor(){
+    constructor() {
         super("pong");
 
         this.description = "Sends back a 'Ping!'";
@@ -10,8 +9,7 @@ export class ExportedCommand extends Command {
         this.visible = false;
     }
 
-    run(command: ParsedCommand){
+    run(command: ParsedCommand) {
         command.message.reply("Ping!");
     }
-
 }

@@ -1,9 +1,9 @@
 export type DiscordBotConfig = {
-    prefix: string,
-    github: string
-}
+    prefix: string;
+    github: string;
+};
 
 export const config: DiscordBotConfig = {
     prefix: "!",
-    github: "https://github.com/legoandmars/ACPatternDiscordBot"
-}
+    github: "https://github.com/legoandmars/ACPatternDiscordBot",
+};
