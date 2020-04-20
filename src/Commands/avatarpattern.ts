@@ -19,6 +19,16 @@ export class ExportedCommand extends Command {
             "patternuser",
         ];
 
+        this.advancedOptions = [
+            {
+                name: "circle",
+                description:
+                    "Determines whether or not to cut the user's avatar into a circle",
+                values: [true, false],
+                defaultValue: true,
+            },
+        ];
+
         // add making able to cut it down to a circle
         // make usage a string
         // make it so you can do it without pinging, probably with id
@@ -27,7 +37,7 @@ export class ExportedCommand extends Command {
     run(command: ParsedCommand) {
         this.urlsFromMessageMembers(command.message)
             .then((urlArray) => {
-                PatternUtils.urlsToPatternMessage(urlArray, command.message);
+                PatternUtils.urlsToPatternMessage(urlArray, command);
             })
             .catch((reason) => {
                 return command.message.reply(reason);

@@ -14,7 +14,7 @@ export class ExportedCommand extends Command {
     run(command: ParsedCommand) {
         const image: MessageAttachment = command.message.attachments.array()[0];
         if (image) {
-            PatternUtils.urlToPatternMessage(image.url, command.message);
+            PatternUtils.urlToPatternMessage(image.url, command);
         } else command.message.reply("No attached image!");
     }
 }

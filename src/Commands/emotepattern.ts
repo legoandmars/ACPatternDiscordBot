@@ -17,10 +17,7 @@ export class ExportedCommand extends Command {
         console.log(command.message.content);
         EmoteUtils.urlsFromEmojiString(command.message.content)
             .then((emoteUrlArray) => {
-                PatternUtils.urlsToPatternMessage(
-                    emoteUrlArray,
-                    command.message
-                );
+                PatternUtils.urlsToPatternMessage(emoteUrlArray, command);
             })
             .catch((reason) => {
                 return command.message.reply(reason);

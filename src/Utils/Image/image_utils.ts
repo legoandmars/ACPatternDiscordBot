@@ -58,7 +58,7 @@ export namespace ImageUtils {
     }
 
     export function quantizeImage(
-        image: Image,
+        image: Canvas,
         quantizationOptions?: QuantizationOptions
     ): Canvas {
         // TODO: add multiple configurable options

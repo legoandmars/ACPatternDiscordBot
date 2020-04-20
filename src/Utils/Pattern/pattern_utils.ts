@@ -1,5 +1,6 @@
 import { Canvas, Image } from "canvas";
 import { Message } from "discord.js";
+import { ParsedCommand } from "src/Commands/command";
 import { ColorUtils, ImageUtils, BotUtils } from "../utils";
 
 export namespace PatternUtils {
@@ -327,8 +328,9 @@ export namespace PatternUtils {
     }
 
     export function patternFromImage(
-        attachmentImage: Image,
-        hsvColorArray: ColorUtils.RGB[]
+        attachmentImage: Canvas,
+        hsvColorArray: ColorUtils.RGB[],
+        command: ParsedCommand
     ): Promise<Canvas> {
         return new Promise((resolve, reject) => {
             const quantizedCanvas = ImageUtils.quantizeImage(attachmentImage);
@@ -374,23 +376,62 @@ export namespace PatternUtils {
             }
         });
     }
-
-    export function urlToPatternMessage(url: string, message: Message) {
+    export function preProcessImage(
+        image: Image,
+        command: ParsedCommand
+    ): Promise<Canvas> {
+        // PRE PROCESSING BASED ON COMMANDS
+        return new Promise((resolve, reject) => {
+            const canvas = new Canvas(image.width, image.height);
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(image, 0, 0);
+            if (
+                command.advancedArgs.some(
+                    (arg) => arg.name === "circle" && arg.value === true
+                )
+            ) {
+                ctx.globalCompositeOperation = "destination-in";
+                ctx.beginPath();
+                ctx.arc(
+                    canvas.width / 2,
+                    canvas.height / 2,
+                    canvas.height / 2,
+                    0,
+                    Math.PI * 2
+                );
+                ctx.closePath();
+                ctx.fill();
+            }
+            resolve(canvas);
+        });
+    }
+    export function urlToPatternMessage(url: string, command: ParsedCommand) {
         const attachmentImage = new Image();
         attachmentImage.src = url;
 
         attachmentImage.onload = () => {
-            PatternUtils.patternFromImage(
-                attachmentImage,
-                ColorUtils.HSVArray
-            ).then((mainInstructionCanvas) => {
-                // all done. send image.
-                BotUtils.sendImages([mainInstructionCanvas], message);
-            });
+            preProcessImage(attachmentImage, command).then(
+                (attachmentCanvas) => {
+                    PatternUtils.patternFromImage(
+                        attachmentCanvas,
+                        ColorUtils.HSVArray,
+                        command
+                    ).then((mainInstructionCanvas) => {
+                        // all done. send image.
+                        BotUtils.sendImages(
+                            [mainInstructionCanvas],
+                            command.message
+                        );
+                    });
+                }
+            );
         };
     }
 
-    export function urlsToPatternMessage(urls: string[], message: Message) {
+    export function urlsToPatternMessage(
+        urls: string[],
+        command: ParsedCommand
+    ) {
         const imagesArray: Canvas[] = [];
         for (let i = 0; i < urls.length; i++) {
             const url = urls[i];
@@ -400,22 +441,30 @@ export namespace PatternUtils {
             attachmentImage.src = url;
 
             attachmentImage.onload = () => {
-                PatternUtils.patternFromImage(
-                    attachmentImage,
-                    ColorUtils.HSVArray
-                ).then((mainInstructionCanvas) => {
-                    // all done. send image.
-                    imagesArray[i] = mainInstructionCanvas;
-                    let totalLoadedImages = 0;
-                    for (let j = 0; j < urls.length - 1; j++) {
-                        if (imagesArray[j]) {
-                            totalLoadedImages += 1;
-                        }
+                preProcessImage(attachmentImage, command).then(
+                    (attachmentCanvas) => {
+                        PatternUtils.patternFromImage(
+                            attachmentCanvas,
+                            ColorUtils.HSVArray,
+                            command
+                        ).then((mainInstructionCanvas) => {
+                            // all done. send image.
+                            imagesArray[i] = mainInstructionCanvas;
+                            let totalLoadedImages = 0;
+                            for (let j = 0; j < urls.length - 1; j++) {
+                                if (imagesArray[j]) {
+                                    totalLoadedImages += 1;
+                                }
+                            }
+                            if (totalLoadedImages === urls.length - 1) {
+                                BotUtils.sendImages(
+                                    imagesArray,
+                                    command.message
+                                );
+                            }
+                        });
                     }
-                    if (totalLoadedImages === urls.length - 1) {
-                        BotUtils.sendImages(imagesArray, message);
-                    }
-                });
+                );
             };
         }
     }
