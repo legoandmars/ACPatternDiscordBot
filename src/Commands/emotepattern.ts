@@ -8,7 +8,7 @@ export class ExportedCommand extends Command {
         this.description =
             "Creates a pattern from an emote.\n\nAccepts the default discord emotes, server emotes, and the first frame of animated emotes.";
 
-        this.usage = `(up to ${EmoteUtils.emoteLimit} emotes)`;
+        this.usages = [`(up to ${EmoteUtils.emoteLimit} emotes)`];
 
         this.aliases = ["emojipattern", "patternemoji", "patternemote"];
     }

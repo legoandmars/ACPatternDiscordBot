@@ -9,7 +9,7 @@ export class ExportedCommand extends Command {
         this.description =
             "Gives information about commands and how to use them.";
 
-        this.usage = "<command>";
+        this.usages = ["", "(command)"];
 
         this.aliases = ["info"];
 
@@ -55,7 +55,7 @@ export class ExportedCommand extends Command {
                 .setColor("#f98386")
                 .setTitle(command.prefix + this.name)
                 .setDescription(
-                    `Type \`${command.prefix}help <command_name>\` for a more detailed explanation of a command.`
+                    `Type \`${command.prefix}help (command name)\` for a more detailed explanation of a command.`
                 )
                 .setFooter(
                     "Animal Crossing Pattern Bot",

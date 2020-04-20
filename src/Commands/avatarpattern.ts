@@ -6,9 +6,10 @@ export class ExportedCommand extends Command {
     constructor() {
         super("avatarpattern");
 
-        this.description = "Creates a pattern from a user's avatar.";
+        this.description =
+            "Creates a pattern from a user's avatar.\n\nRunning this command with no arguments will make a pattern from the avatar of the user running the command.";
 
-        this.usage = `(user)`;
+        this.usages = ["", `(user mention)`];
 
         this.aliases = [
             "patternavatar",

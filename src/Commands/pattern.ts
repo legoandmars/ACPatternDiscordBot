@@ -7,6 +7,8 @@ export class ExportedCommand extends Command {
         super("pattern");
 
         this.description = "Creates a pattern from an image.";
+
+        this.usages = ["(attached image)"];
     }
 
     run(command: ParsedCommand) {

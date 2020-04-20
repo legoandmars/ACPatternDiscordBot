@@ -13,7 +13,7 @@ export class Command implements CommandInterface {
 
     description: string; // a basic description of what the command does, shown in !help
 
-    usage: string; // an example of how to use the command. Example: `<args> <args2> (optionalarg)`
+    usages: string[]; // an example of how to use the command. Example: `<args> <args2> (optionalarg)`
 
     aliases: string[]; // all possible names by which you can call the command
 
@@ -43,11 +43,20 @@ export class Command implements CommandInterface {
                 BotUtils.client.user.avatarURL()
             );
 
-        if (this.usage) {
-            helpEmbed.addField(
-                "**Usage**",
-                `${parsedCommand.prefix + this.name} ${this.usage}`
-            );
+        if (this.usages) {
+            const usagesWithPrefixes: string[] = [];
+            for (let i = 0; i < this.usages.length; i++) {
+                usagesWithPrefixes.push(
+                    `${parsedCommand.prefix + this.name} ${this.usages[i]}`
+                );
+            }
+            let fieldName: string = "";
+            if (this.usages.length > 1) {
+                fieldName = "**Usages**";
+            } else {
+                fieldName = "**Usage**";
+            }
+            helpEmbed.addField(fieldName, `${usagesWithPrefixes.join("\n")}`);
         } else
             helpEmbed.addField(
                 "**Usage**",
@@ -56,7 +65,6 @@ export class Command implements CommandInterface {
 
         const aliasesWithPrefixes: string[] = [];
         if (this.aliases) {
-            console.log(this.aliases);
             for (let i = 0; i < this.aliases.length; i++) {
                 console.log(parsedCommand.prefix + this.aliases[i]);
                 aliasesWithPrefixes.push(
