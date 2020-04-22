@@ -18,6 +18,7 @@ export class ParsedCommand {
     readonly name: string;
 
     constructor(message: Message, prefix: string) {
+        if (message.content.charAt(0) !== prefix) return;
         const args: string[] = message.content.slice(prefix.length).split(" ");
         const tempAdvancedArgs = [];
         const advancedArgs = message.content.slice(prefix.length).split("--");

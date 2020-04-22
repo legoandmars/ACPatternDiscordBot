@@ -8,13 +8,93 @@ export interface CommandInterface {
     execute(parsedCommand: ParsedCommand): void;
 }
 
-export interface AdvancedOptions {
-    name: string;
-    values: any;
-    description: string;
-    defaultValue: any;
+export interface AdvancedOptionArguments {
+    required: boolean; // if false, it's just a flag with no arguments.
+    values?: any[];
+    defaultValue?: any;
 }
 
+export interface AdvancedOptions {
+    name: string;
+    description: string;
+    arguments: AdvancedOptionArguments;
+}
+
+function validateAdvancedArguments(
+    advancedOptions: AdvancedOptions[],
+    parsedCommand: ParsedCommand
+): Promise<[string, ParsedCommand]> {
+    return new Promise((resolve, reject) => {
+        for (let i = 0; i < advancedOptions.length; i++) {
+            const expectedOption = advancedOptions[i];
+            let argWasPassed = false;
+            for (let j = 0; j < parsedCommand.advancedArgs.length; j++) {
+                const passedOption = parsedCommand.advancedArgs[j];
+                if (passedOption.name === expectedOption.name) {
+                    // found it.
+                    argWasPassed = true;
+                    if (expectedOption.arguments.required === true) {
+                        let valueIsProper = false;
+                        expectedOption.arguments.values.forEach((value) => {
+                            if (value === passedOption.value) {
+                                valueIsProper = true;
+                            }
+                        });
+                        if (valueIsProper === false) {
+                            resolve([
+                                `\`${
+                                    passedOption.value
+                                }\` is not a valid value for --${
+                                    passedOption.name
+                                }. A list of valid values are: \`${expectedOption.arguments.values.join(
+                                    ", "
+                                )}\``,
+                                parsedCommand,
+                            ]);
+                        }
+                    } else if (expectedOption.arguments.required === false) {
+                        if (passedOption.value !== undefined) {
+                            resolve([
+                                `\`${passedOption.value}\` is not a valid value for --${passedOption.name}. --${passedOption.name} does not accept any values.`,
+                                parsedCommand,
+                            ]);
+                        }
+                    }
+                }
+                if (argWasPassed === false) {
+                    // it wasn't passed, so create it with default values.
+                    let commandValue;
+                    if (expectedOption.arguments.required === true) {
+                        commandValue = expectedOption.arguments.defaultValue;
+                        parsedCommand.advancedArgs.push({
+                            name: expectedOption.name,
+                            value: commandValue,
+                            type: typeof commandValue,
+                        });
+                    }
+                }
+            }
+        }
+        for (let i = 0; i < parsedCommand.advancedArgs.length; i++) {
+            const passedOption = parsedCommand.advancedArgs[i];
+            let optionNameValid = false;
+            for (let j = 0; j < advancedOptions.length; j++) {
+                const expectedOption = advancedOptions[j];
+                if (expectedOption.name === passedOption.name) {
+                    optionNameValid = true;
+                }
+            }
+            if (optionNameValid === false) {
+                resolve([
+                    `\`${passedOption.name}\` is not a valid advanced option for --${parsedCommand.name}. Please do !help ${parsedCommand.name} for a list of advanced options.`,
+                    parsedCommand,
+                ]);
+            }
+        }
+        // if it made it past all those checks, it's a proper flag.
+        resolve(["", parsedCommand]);
+    });
+}
 export class Command implements CommandInterface {
     name: string; // main name of the command.
 
@@ -35,75 +115,20 @@ export class Command implements CommandInterface {
             console.log(`Executing ${this.name} (alias ${parsedCommand.name})`);
         } else console.log(`Executing ${parsedCommand.name}`);
         // validate advanced args
-        for (let i = 0; i < parsedCommand.advancedArgs.length; i++) {
-            const advancedArg = parsedCommand.advancedArgs[i];
-            let argFound = false;
-            for (let j = 0; j < this.advancedOptions.length; j++) {
-                const advancedCommandArg = this.advancedOptions[j];
-                if (advancedArg.name === advancedCommandArg.name) {
-                    argFound = true;
-                    let foundProperValue = false;
-                    if (Array.isArray(advancedCommandArg.values)) {
-                        for (
-                            let k = 0;
-                            k < advancedCommandArg.values.length;
-                            k++
-                        ) {
-                            if (
-                                advancedArg.value ===
-                                advancedCommandArg.values[k]
-                            ) {
-                                foundProperValue = true;
-                            }
-                        }
-                    }
-                    if (
-                        foundProperValue === false &&
-                        advancedArg.value !== advancedCommandArg.values
-                    ) {
-                        // throw error
-                        parsedCommand.message.reply(
-                            `\`${advancedArg.value}\` is not a valid value for --${advancedArg.name}. A list of valid values are: \`${advancedCommandArg.values}\``
-                        );
-                        return;
-                    }
-                }
-            }
-            if (argFound === false) {
-                parsedCommand.message.reply(
-                    `${
-                        parsedCommand.prefix + this.name
-                    } does not have advanced option --${
-                        advancedArg.name
-                    }. Please do ${parsedCommand.prefix}help ${
-                        this.name
-                    } for a list of advanced options.`
-                );
-                return;
-            }
-        }
-        // make sure any args that don't exist are created with default values
-        if (this.advancedOptions) {
-            for (let i = 0; i < this.advancedOptions.length; i++) {
-                const advancedCommandArg = this.advancedOptions[i];
-                const findArg = parsedCommand.advancedArgs.find((arg) => {
-                    return arg.name === advancedCommandArg.name;
-                });
-                if (!findArg) {
-                    console.log("CREATING ARG");
-                    parsedCommand.advancedArgs.push({
-                        name: advancedCommandArg.name,
-                        value: advancedCommandArg.defaultValue,
-                        type: typeof advancedCommandArg.defaultValue,
-                    });
-                }
-            }
-        }
-
         if (parsedCommand.args[0] === "help") {
             // run help function
             this.help(parsedCommand);
-        } else this.run(parsedCommand);
+        }
+        validateAdvancedArguments(this.advancedOptions, parsedCommand).then(
+            ([returnString, returnCommand]) => {
+                if (returnString === "") {
+                    console.log("Accepted");
+                    this.run(returnCommand);
+                } else {
+                    returnCommand.message.reply(returnString);
+                }
+            }
+        );
     }
 
     run(parsedCommand: ParsedCommand): void {}

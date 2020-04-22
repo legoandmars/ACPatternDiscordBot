@@ -24,8 +24,11 @@ export class ExportedCommand extends Command {
                 name: "circle",
                 description:
                     "Determines whether or not to cut the user's avatar into a circle",
-                values: [true, false],
-                defaultValue: true,
+                arguments: {
+                    required: true,
+                    values: [true, false],
+                    defaultValue: false,
+                },
             },
         ];
 

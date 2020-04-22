@@ -4,6 +4,26 @@ import { ParsedCommand } from "src/Commands/command";
 import { ColorUtils, ImageUtils, BotUtils } from "../utils";
 
 export namespace PatternUtils {
+    export class Pattern {
+        image: Image;
+
+        imageURL: string;
+
+        canvas: Canvas;
+
+        constructor(url: string) {
+            this.imageURL = url;
+            // load image
+            const attachmentImage = new Image();
+            attachmentImage.src = url;
+
+            attachmentImage.onload = () => {
+                this.image = attachmentImage;
+                this.canvas = ImageUtils.imageToCanvas(attachmentImage);
+
+            };
+        }
+    }
     let images: ImageUtils.NamedImage;
 
     export function loadPatternImages() {
