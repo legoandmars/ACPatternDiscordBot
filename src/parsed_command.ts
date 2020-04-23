@@ -39,10 +39,10 @@ export class ParsedCommand {
             ) {
                 argValue = Number(advArgSplit[1]);
             } else {
-                argValue = advArgSplit[1];
+                argValue = advArgSplit[1].toLowerCase();
             }
             tempAdvancedArgs[i] = {
-                name: advArgSplit[0],
+                name: advArgSplit[0].toLowerCase(),
                 value: argValue,
                 type: typeof argValue,
             };

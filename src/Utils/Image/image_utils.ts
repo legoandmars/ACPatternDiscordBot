@@ -9,6 +9,7 @@ import {
 } from "image-q";
 import path from "path";
 import fs from "fs";
+import { advancedArg } from "src/Commands/command";
 
 export namespace ImageUtils {
     export interface NamedImage {
@@ -52,16 +53,29 @@ export namespace ImageUtils {
     }
 
     export interface QuantizationOptions {
-        paletteQuantization: PaletteQuantization;
-        colorDistanceFormula: ColorDistanceFormula;
-        imageQuantization: ImageQuantization;
+        paletteQuantization: string;
+        colorDistanceFormula: string;
+        imageQuantization: string;
+        colors: number;
     }
 
     export function quantizeImage(
         image: Canvas,
-        quantizationOptions?: QuantizationOptions
+        options: advancedArg[]
     ): Canvas {
         // TODO: add multiple configurable options
+        const quantizationOptions: QuantizationOptions = {
+            colors: options.find((element) => element.name === "colors").value,
+            imageQuantization: options.find(
+                (element) => element.name === "imagequantization"
+            ).value,
+            colorDistanceFormula: options.find(
+                (element) => element.name === "colordistanceformula"
+            ).value,
+            paletteQuantization: options.find(
+                (element) => element.name === "palettequantization"
+            ).value,
+        };
 
         const quantCanvas: unknown = new Canvas(32, 32);
         const quantCtx = (quantCanvas as Canvas).getContext("2d");
@@ -73,20 +87,40 @@ export namespace ImageUtils {
         );
         let palette;
         let outPointContainer;
-
-        if (quantizationOptions) {
+        if (
+            quantizationOptions.paletteQuantization !== "default" &&
+            quantizationOptions.colorDistanceFormula !== "default"
+        ) {
             palette = buildPaletteSync([inPointContainer], {
-                colors: 15,
-                paletteQuantization: quantizationOptions.paletteQuantization,
-                colorDistanceFormula: quantizationOptions.colorDistanceFormula,
+                colors: quantizationOptions.colors,
+                paletteQuantization: quantizationOptions.paletteQuantization as PaletteQuantization,
+                colorDistanceFormula: quantizationOptions.colorDistanceFormula as ColorDistanceFormula,
             });
-            outPointContainer = applyPaletteSync(inPointContainer, palette, {
-                imageQuantization: quantizationOptions.imageQuantization,
+        } else if (quantizationOptions.paletteQuantization !== "default") {
+            palette = buildPaletteSync([inPointContainer], {
+                colors: quantizationOptions.colors,
+                paletteQuantization: quantizationOptions.paletteQuantization as PaletteQuantization,
+            });
+        } else if (quantizationOptions.colorDistanceFormula !== "default") {
+            palette = buildPaletteSync([inPointContainer], {
+                colors: quantizationOptions.colors,
+                colorDistanceFormula: quantizationOptions.colorDistanceFormula as ColorDistanceFormula,
             });
         } else {
-            palette = buildPaletteSync([inPointContainer], { colors: 15 });
+            palette = buildPaletteSync([inPointContainer], {
+                colors: quantizationOptions.colors,
+            });
+        }
+
+        if (quantizationOptions.imageQuantization !== "default") {
+            outPointContainer = applyPaletteSync(inPointContainer, palette, {
+                imageQuantization: quantizationOptions.imageQuantization as ImageQuantization,
+            });
+        } else {
             outPointContainer = applyPaletteSync(inPointContainer, palette);
         }
+        // palette = buildPaletteSync([inPointContainer], { colors: 15 });
+        // outPointContainer = applyPaletteSync(inPointContainer, palette);
 
         const clampedArray = new Uint8ClampedArray(
             outPointContainer.toUint8Array(),
