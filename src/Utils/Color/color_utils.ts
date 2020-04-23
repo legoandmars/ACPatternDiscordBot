@@ -131,7 +131,6 @@ export namespace ColorUtils {
     }
 
     export function nearestColor(needle: RGB, colors: RGB[]) {
-        console.log(needle);
         if (!needle) {
             return null;
         }

@@ -1,8 +1,9 @@
 import { Message } from "discord.js";
-import { Command, ParsedCommand } from "./command";
-import { PatternUtils } from "../Utils/utils";
+import { Canvas } from "canvas";
+import { ParsedCommand } from "./command";
+import { PatternBase } from "../Base/pattern_base";
 
-export class ExportedCommand extends Command {
+export class ExportedCommand extends PatternBase {
     constructor() {
         super("avatarpattern");
 
@@ -18,20 +19,7 @@ export class ExportedCommand extends Command {
             "userpattern",
             "patternuser",
         ];
-
-        // add making able to cut it down to a circle
-        // make usage a string
         // make it so you can do it without pinging, probably with id
-    }
-
-    run(command: ParsedCommand) {
-        this.urlsFromMessageMembers(command.message)
-            .then((urlArray) => {
-                PatternUtils.urlsToPatternMessage(urlArray, command.message);
-            })
-            .catch((reason) => {
-                return command.message.reply(reason);
-            });
     }
 
     avatarLimit: number = 5;
@@ -56,5 +44,16 @@ export class ExportedCommand extends Command {
 
             resolve(urlArray);
         });
+    }
+
+    run(command: ParsedCommand) {
+        const instructionsList: Canvas[] = [];
+        this.urlsFromMessageMembers(command.message)
+            .then((urlArray) => {
+                this.sendURLs(urlArray, command);
+            })
+            .catch((reason) => {
+                return command.message.reply(reason);
+            });
     }
 }

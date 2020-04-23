@@ -1,7 +1,8 @@
-import { Command, ParsedCommand } from "./command";
-import { PatternUtils, EmoteUtils } from "../Utils/utils";
+import { ParsedCommand } from "./command";
+import { EmoteUtils } from "../Utils/utils";
+import { PatternBase } from "../Base/pattern_base";
 
-export class ExportedCommand extends Command {
+export class ExportedCommand extends PatternBase {
     constructor() {
         super("emotepattern");
 
@@ -17,10 +18,7 @@ export class ExportedCommand extends Command {
         console.log(command.message.content);
         EmoteUtils.urlsFromEmojiString(command.message.content)
             .then((emoteUrlArray) => {
-                PatternUtils.urlsToPatternMessage(
-                    emoteUrlArray,
-                    command.message
-                );
+                this.sendURLs(emoteUrlArray, command);
             })
             .catch((reason) => {
                 return command.message.reply(reason);
