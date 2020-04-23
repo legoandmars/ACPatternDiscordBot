@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 
-interface advancedArg {
+export interface advancedArg {
     name: string;
     value: any;
     type: string;

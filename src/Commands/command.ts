@@ -1,6 +1,6 @@
 import { MessageEmbed } from "discord.js";
 import { BotUtils } from "../Utils/utils";
-import { ParsedCommand } from "../parsed_command";
+import { ParsedCommand, advancedArg } from "../parsed_command";
 
 export interface CommandInterface {
     readonly name: string;
@@ -25,70 +25,75 @@ function validateAdvancedArguments(
     parsedCommand: ParsedCommand
 ): Promise<[string, ParsedCommand]> {
     return new Promise((resolve, reject) => {
-        for (let i = 0; i < advancedOptions.length; i++) {
-            const expectedOption = advancedOptions[i];
-            let argWasPassed = false;
-            for (let j = 0; j < parsedCommand.advancedArgs.length; j++) {
-                const passedOption = parsedCommand.advancedArgs[j];
-                if (passedOption.name === expectedOption.name) {
-                    // found it.
-                    argWasPassed = true;
-                    if (expectedOption.arguments.required === true) {
-                        let valueIsProper = false;
-                        expectedOption.arguments.values.forEach((value) => {
-                            if (value === passedOption.value) {
-                                valueIsProper = true;
+        if (advancedOptions) {
+            for (let i = 0; i < advancedOptions.length; i++) {
+                const expectedOption = advancedOptions[i];
+                let argWasPassed = false;
+                for (let j = 0; j < parsedCommand.advancedArgs.length; j++) {
+                    const passedOption = parsedCommand.advancedArgs[j];
+                    if (passedOption.name === expectedOption.name) {
+                        // found it.
+                        argWasPassed = true;
+                        if (expectedOption.arguments.required === true) {
+                            let valueIsProper = false;
+                            expectedOption.arguments.values.forEach((value) => {
+                                if (value === passedOption.value) {
+                                    valueIsProper = true;
+                                }
+                            });
+                            if (valueIsProper === false) {
+                                resolve([
+                                    `\`${
+                                        passedOption.value
+                                    }\` is not a valid value for --${
+                                        passedOption.name
+                                    }. A list of valid values are: \`${expectedOption.arguments.values.join(
+                                        ", "
+                                    )}\``,
+                                    parsedCommand,
+                                ]);
                             }
-                        });
-                        if (valueIsProper === false) {
-                            resolve([
-                                `\`${
-                                    passedOption.value
-                                }\` is not a valid value for --${
-                                    passedOption.name
-                                }. A list of valid values are: \`${expectedOption.arguments.values.join(
-                                    ", "
-                                )}\``,
-                                parsedCommand,
-                            ]);
+                        } else if (
+                            expectedOption.arguments.required === false
+                        ) {
+                            if (passedOption.value !== undefined) {
+                                resolve([
+                                    `\`${passedOption.value}\` is not a valid value for --${passedOption.name}. --${passedOption.name} does not accept any values.`,
+                                    parsedCommand,
+                                ]);
+                            }
                         }
-                    } else if (expectedOption.arguments.required === false) {
-                        if (passedOption.value !== undefined) {
-                            resolve([
-                                `\`${passedOption.value}\` is not a valid value for --${passedOption.name}. --${passedOption.name} does not accept any values.`,
-                                parsedCommand,
-                            ]);
+                    }
+                    if (argWasPassed === false) {
+                        // it wasn't passed, so create it with default values.
+                        let commandValue;
+                        if (expectedOption.arguments.required === true) {
+                            commandValue =
+                                expectedOption.arguments.defaultValue;
+                            parsedCommand.advancedArgs.push({
+                                name: expectedOption.name,
+                                value: commandValue,
+                                type: typeof commandValue,
+                            });
                         }
                     }
                 }
-                if (argWasPassed === false) {
-                    // it wasn't passed, so create it with default values.
-                    let commandValue;
-                    if (expectedOption.arguments.required === true) {
-                        commandValue = expectedOption.arguments.defaultValue;
-                        parsedCommand.advancedArgs.push({
-                            name: expectedOption.name,
-                            value: commandValue,
-                            type: typeof commandValue,
-                        });
+            }
+            for (let i = 0; i < parsedCommand.advancedArgs.length; i++) {
+                const passedOption = parsedCommand.advancedArgs[i];
+                let optionNameValid = false;
+                for (let j = 0; j < advancedOptions.length; j++) {
+                    const expectedOption = advancedOptions[j];
+                    if (expectedOption.name === passedOption.name) {
+                        optionNameValid = true;
                     }
                 }
-            }
-        }
-        for (let i = 0; i < parsedCommand.advancedArgs.length; i++) {
-            const passedOption = parsedCommand.advancedArgs[i];
-            let optionNameValid = false;
-            for (let j = 0; j < advancedOptions.length; j++) {
-                const expectedOption = advancedOptions[j];
-                if (expectedOption.name === passedOption.name) {
-                    optionNameValid = true;
+                if (optionNameValid === false) {
+                    resolve([
+                        `\`${passedOption.name}\` is not a valid advanced option for --${parsedCommand.name}. Please do !help ${parsedCommand.name} for a list of advanced options.`,
+                        parsedCommand,
+                    ]);
                 }
-            }
-            if (optionNameValid === false) {
-                resolve([
-                    `\`${passedOption.name}\` is not a valid advanced option for --${parsedCommand.name}. Please do !help ${parsedCommand.name} for a list of advanced options.`,
-                    parsedCommand,
-                ]);
             }
         }
         // if it made it past all those checks, it's a proper flag.
@@ -187,4 +192,4 @@ export class Command implements CommandInterface {
     }
 }
 
-export { ParsedCommand };
+export { ParsedCommand, advancedArg };
