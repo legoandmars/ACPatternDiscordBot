@@ -96,7 +96,10 @@ export namespace PatternUtils {
 
         private patternFromImage(): Promise<Canvas> {
             return new Promise((resolve, reject) => {
-                const quantizedCanvas = ImageUtils.quantizeImage(this.canvas);
+                const quantizedCanvas = ImageUtils.quantizeImage(
+                    this.canvas,
+                    this.options
+                );
                 const correctedCanvas: [
                     Canvas,
                     Canvas[]
@@ -156,11 +159,11 @@ export namespace PatternUtils {
                     hsvToConvert = ColorUtils.RGBtoHSV(hsvToConvertArray[1]);
                 } else hsvToConvert = ColorUtils.RGBtoHSV(hsvToConvertArray[0]);
                 console.log(`Generating image #${colorNumber}`);
-                // /
+
                 const outlineEnabled = true;
                 const outlineThickness = 2;
                 const backgroundImageOpacity = 70;
-                // /
+
                 const tempCanvas = new Canvas(
                     images.background.width,
                     images.background.height
@@ -382,8 +385,13 @@ export namespace PatternUtils {
                 );
                 ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(images.transparency, 0, 0);
-                ctx.drawImage(fullImageBackground, 129, 408, 639, 639);
-                ctx.drawImage(fullImage, 129, 408, 639, 639);
+                if (
+                    this.optionExists("fullbackgroundimage") &&
+                    this.getOption("fullbackgroundimage").value === true
+                ) {
+                    ctx.drawImage(fullImageBackground, 129, 408, 639, 639);
+                    ctx.drawImage(fullImage, 129, 408, 639, 639);
+                }
                 ctx.drawImage(images.background_overlay, 0, 0);
                 ctx.drawImage(tempCanvas, 0, 0);
                 ctx.imageSmoothingEnabled = true;

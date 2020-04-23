@@ -64,18 +64,17 @@ function validateAdvancedArguments(
                             }
                         }
                     }
-                    if (argWasPassed === false) {
-                        // it wasn't passed, so create it with default values.
-                        let commandValue;
-                        if (expectedOption.arguments.required === true) {
-                            commandValue =
-                                expectedOption.arguments.defaultValue;
-                            parsedCommand.advancedArgs.push({
-                                name: expectedOption.name,
-                                value: commandValue,
-                                type: typeof commandValue,
-                            });
-                        }
+                }
+                if (argWasPassed === false) {
+                    // it wasn't passed, so create it with default values.
+                    let commandValue;
+                    if (expectedOption.arguments.required === true) {
+                        commandValue = expectedOption.arguments.defaultValue;
+                        parsedCommand.advancedArgs.push({
+                            name: expectedOption.name,
+                            value: commandValue,
+                            type: typeof commandValue,
+                        });
                     }
                 }
             }
@@ -123,17 +122,18 @@ export class Command implements CommandInterface {
         if (parsedCommand.args[0] === "help") {
             // run help function
             this.help(parsedCommand);
-        }
-        validateAdvancedArguments(this.advancedOptions, parsedCommand).then(
-            ([returnString, returnCommand]) => {
-                if (returnString === "") {
-                    console.log("Accepted");
-                    this.run(returnCommand);
-                } else {
-                    returnCommand.message.reply(returnString);
+        } else {
+            validateAdvancedArguments(this.advancedOptions, parsedCommand).then(
+                ([returnString, returnCommand]) => {
+                    if (returnString === "") {
+                        console.log("Accepted");
+                        this.run(returnCommand);
+                    } else {
+                        returnCommand.message.reply(returnString);
+                    }
                 }
-            }
-        );
+            );
+        }
     }
 
     run(parsedCommand: ParsedCommand): void {}
@@ -182,7 +182,28 @@ export class Command implements CommandInterface {
             "**Aliases**",
             `\`${aliasesWithPrefixes.join(", ")}\``
         );
-
+        if (this.advancedOptions) {
+            // parse advanced options
+            const advancedOptionsArray: string[] = [];
+            for (let i = 0; i < this.advancedOptions.length; i++) {
+                const advancedOption = this.advancedOptions[i];
+                let advancedOptionString: string;
+                if (advancedOption.arguments.required === true) {
+                    advancedOptionString = `\`--${
+                        advancedOption.name
+                    } (${advancedOption.arguments.values.join("/")})\`\n${
+                        advancedOption.description
+                    } Default: \`${advancedOption.arguments.defaultValue}\``;
+                } else {
+                    advancedOptionString = `\`--${advancedOption.name}\`\n${advancedOption.description}`;
+                }
+                advancedOptionsArray.push(advancedOptionString);
+            }
+            helpEmbed.addField(
+                "**Advanced Options**",
+                `${advancedOptionsArray.join("\n\n")}`
+            );
+        }
         parsedCommand.message.channel.send(helpEmbed);
     }
 
