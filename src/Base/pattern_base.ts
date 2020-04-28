@@ -15,13 +15,11 @@ export class PatternBase extends Command {
                 },
             },
             {
-                name: "fullbackgroundimage",
+                name: "nobackgroundimage",
                 description:
-                    "Whether or not the full image should appear behind the current layer in the instructions.",
+                    "Don't display the full image behind the current layer in the instructions.",
                 arguments: {
-                    required: true,
-                    values: [true, false],
-                    defaultValue: true,
+                    required: false,
                 },
             },
             {
@@ -90,6 +88,15 @@ export class PatternBase extends Command {
                         "wuquant",
                     ],
                     defaultValue: "default",
+                },
+            },
+            {
+                name: "resizemode",
+                description: "The mode used to resize non square sized images.",
+                arguments: {
+                    required: true,
+                    values: ["stretch", "crop"],
+                    defaultValue: "stretch",
                 },
             },
         ];
