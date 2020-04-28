@@ -44,6 +44,38 @@ export namespace PatternUtils {
                     this.image = attachmentImage;
                     this.canvas = ImageUtils.imageToCanvas(attachmentImage);
                     // pre process
+                    // crop first
+                    if (
+                        this.optionExists("resizemode") &&
+                        this.getOption("resizemode").value === "crop"
+                    ) {
+                        const width: number = this.canvas.width;
+                        const height: number = this.canvas.height;
+                        if (width !== height) {
+                            let croppedWidth: number;
+                            let croppedHeight: number;
+                            if (width > height) {
+                                croppedWidth = height;
+                                croppedHeight = height;
+                            } else if (height > width) {
+                                croppedWidth = width;
+                                croppedHeight = width;
+                            }
+                            const croppedCanvas = new Canvas(
+                                croppedWidth,
+                                croppedHeight
+                            );
+                            croppedCanvas
+                                .getContext("2d")
+                                .drawImage(
+                                    this.canvas,
+                                    -(width / 2 - croppedWidth / 2),
+                                    -(height / 2 - croppedHeight / 2)
+                                );
+                            this.canvas = croppedCanvas;
+                        }
+                        // let croppedCanvas =
+                    }
                     if (this.optionExists("circle")) {
                         const canvas = this.canvas;
                         const ctx = canvas.getContext("2d");
@@ -156,7 +188,23 @@ export namespace PatternUtils {
                 // console.log(hsvToConvertArray);
                 let hsvToConvert: ColorUtils.HSV; // = hsvToConvertArray[0];
                 if (hsvToConvertArray.length >= 2) {
-                    hsvToConvert = ColorUtils.RGBtoHSV(hsvToConvertArray[1]);
+                    let nonTransparentHSV: ColorUtils.RGB;
+                    for (let i = 0; i < hsvToConvertArray.length; i++) {
+                        if (
+                            ColorUtils.RGBValuesIdentical(
+                                hsvToConvertArray[i],
+                                { r: 0, g: 0, b: 0 }
+                            ) === false
+                        ) {
+                            nonTransparentHSV = hsvToConvertArray[i];
+                        }
+                    }
+                    if (nonTransparentHSV) {
+                        hsvToConvert = ColorUtils.RGBtoHSV(nonTransparentHSV);
+                    } else
+                        hsvToConvert = ColorUtils.RGBtoHSV(
+                            hsvToConvertArray[1]
+                        );
                 } else hsvToConvert = ColorUtils.RGBtoHSV(hsvToConvertArray[0]);
                 console.log(`Generating image #${colorNumber}`);
 
@@ -385,10 +433,9 @@ export namespace PatternUtils {
                 );
                 ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(images.transparency, 0, 0);
-                if (
-                    this.optionExists("fullbackgroundimage") &&
-                    this.getOption("fullbackgroundimage").value === true
-                ) {
+                if (this.optionExists("nobackgroundimage")) {
+                    // don't draw the background image
+                } else {
                     ctx.drawImage(fullImageBackground, 129, 408, 639, 639);
                     ctx.drawImage(fullImage, 129, 408, 639, 639);
                 }
