@@ -36,6 +36,13 @@ function validateAdvancedArguments(
                         argWasPassed = true;
                         if (expectedOption.arguments.required === true) {
                             let valueIsProper = false;
+                            // a little bit hacky. if there's no expected values, just set it to true.
+                            if (
+                                expectedOption.arguments.values &&
+                                expectedOption.arguments.values.length === 0
+                            ) {
+                                valueIsProper = true;
+                            }
                             expectedOption.arguments.values.forEach((value) => {
                                 if (value === passedOption.value) {
                                     valueIsProper = true;

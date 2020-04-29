@@ -10,6 +10,7 @@ import {
 import path from "path";
 import fs from "fs";
 import { advancedArg } from "src/Commands/command";
+import { strict } from "assert";
 
 export namespace ImageUtils {
     export interface NamedImage {
@@ -64,6 +65,20 @@ export namespace ImageUtils {
         options: advancedArg[]
     ): Canvas {
         // TODO: add multiple configurable options
+        let imageWidth = 32;
+        let imageHeight = 32;
+        if (options.find((element) => element.name === "grid")) {
+            // grid. adjust the size accordingly.
+            const gridValue = options.find((element) => element.name === "grid")
+                .value;
+            if (
+                Number.isInteger(parseInt(gridValue.split("x")[0], 10)) &&
+                Number.isInteger(parseInt(gridValue.split("x")[1], 10))
+            ) {
+                imageWidth = 32 * parseInt(gridValue.split("x")[0], 10);
+                imageHeight = 32 * parseInt(gridValue.split("x")[1], 10);
+            }
+        }
         const quantizationOptions: QuantizationOptions = {
             colors: options.find((element) => element.name === "colors").value,
             imageQuantization: options.find(
@@ -77,10 +92,10 @@ export namespace ImageUtils {
             ).value,
         };
 
-        const quantCanvas: unknown = new Canvas(32, 32);
+        const quantCanvas: unknown = new Canvas(imageWidth, imageHeight);
         const quantCtx = (quantCanvas as Canvas).getContext("2d");
         quantCtx.imageSmoothingQuality = "high";
-        quantCtx.drawImage(image, 0, 0, 32, 32);
+        quantCtx.drawImage(image, 0, 0, imageWidth, imageHeight);
 
         const inPointContainer = utils.PointContainer.fromHTMLCanvasElement(
             quantCanvas as HTMLCanvasElement
@@ -124,10 +139,10 @@ export namespace ImageUtils {
 
         const clampedArray = new Uint8ClampedArray(
             outPointContainer.toUint8Array(),
-            32,
-            32
+            imageWidth,
+            imageHeight
         );
-        const imageData = new ImageData(clampedArray, 32, 32);
+        const imageData = new ImageData(clampedArray, imageWidth, imageHeight);
         quantCtx.putImageData(imageData, 0, 0);
 
         return quantCanvas as Canvas;

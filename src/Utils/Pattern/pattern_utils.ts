@@ -97,19 +97,6 @@ export namespace PatternUtils {
             });
         }
 
-        toInstructions(): Promise<Canvas> {
-            return new Promise((resolve, reject) => {
-                this.patternFromImage().then((mainInstructionCanvas) => {
-                    // all done. send image.
-                    /* BotUtils.sendImages(
-                        [mainInstructionCanvas],
-                        command.message
-                    ); */
-                    return resolve(mainInstructionCanvas);
-                });
-            });
-        }
-
         getOption(name: String): advancedArg {
             return this.options.find(
                 (element) => element.name === name.toLowerCase()
@@ -126,7 +113,7 @@ export namespace PatternUtils {
             return false;
         }
 
-        private patternFromImage(): Promise<Canvas> {
+        toInstructions(): Promise<Canvas[]> {
             return new Promise((resolve, reject) => {
                 const quantizedCanvas = ImageUtils.quantizeImage(
                     this.canvas,
@@ -139,27 +126,71 @@ export namespace PatternUtils {
                     quantizedCanvas,
                     ColorUtils.HSVArray
                 );
-                const imageHeight: number =
-                    Math.ceil(correctedCanvas[1].length / 5) * 1175;
-                let imageWidth: number;
-                if (correctedCanvas[1].length > 5) {
-                    imageWidth = 5 * 896;
-                } else {
-                    imageWidth = correctedCanvas[1].length * 896;
+                const allInstructionCanvases: Canvas[] = [];
+                let gridWidth = 1;
+                let gridHeight = 1;
+                if (this.options.find((element) => element.name === "grid")) {
+                    // grid. adjust the size accordingly.
+                    const gridValue = this.options.find(
+                        (element) => element.name === "grid"
+                    ).value;
+                    if (
+                        Number.isInteger(
+                            parseInt(gridValue.split("x")[0], 10)
+                        ) &&
+                        Number.isInteger(parseInt(gridValue.split("x")[1], 10))
+                    ) {
+                        gridWidth = parseInt(gridValue.split("x")[0], 10);
+                        gridHeight = parseInt(gridValue.split("x")[1], 10);
+                    }
                 }
+                for (
+                    let gridNumber = 0;
+                    gridNumber < gridWidth * gridHeight;
+                    gridNumber++
+                ) {
+                    const imageHeight: number =
+                        Math.ceil(correctedCanvas[1].length / 5) * 1175;
+                    let imageWidth: number;
+                    if (correctedCanvas[1].length > 5) {
+                        imageWidth = 5 * 896;
+                    } else {
+                        imageWidth = correctedCanvas[1].length * 896;
+                    }
 
-                const mainInstructionCanvas = new Canvas(
-                    imageWidth,
-                    imageHeight
-                );
-                const mainInstructionCtx = mainInstructionCanvas.getContext(
-                    "2d"
-                );
+                    const mainInstructionCanvas = new Canvas(
+                        imageWidth,
+                        imageHeight
+                    );
+                    const mainInstructionCtx = mainInstructionCanvas.getContext(
+                        "2d"
+                    );
 
-                for (let i = 0; i < correctedCanvas[1].length; i++) {
-                    const canvas = correctedCanvas[1][i];
-                    this.createPicture(correctedCanvas[0], canvas, i + 1).then(
-                        (instructionCanvas) => {
+                    for (let i = 0; i < correctedCanvas[1].length; i++) {
+                        const canvas = correctedCanvas[1][i];
+                        // manipulate based on grid
+                        const gridCroppedCanvas = new Canvas(32, 32);
+                        gridCroppedCanvas
+                            .getContext("2d")
+                            .drawImage(
+                                canvas,
+                                -(32 * Math.floor(gridNumber / gridHeight)),
+                                -(32 * (gridNumber % gridHeight))
+                            );
+                        const gridCroppedBackgroundCanvas = new Canvas(32, 32);
+                        gridCroppedBackgroundCanvas
+                            .getContext("2d")
+                            .drawImage(
+                                correctedCanvas[0],
+                                -(32 * Math.floor(gridNumber / gridHeight)),
+                                -(32 * (gridNumber % gridHeight))
+                            );
+
+                        this.createPicture(
+                            gridCroppedBackgroundCanvas,
+                            gridCroppedCanvas,
+                            i + 1
+                        ).then((instructionCanvas) => {
                             // console.log(i);
                             mainInstructionCtx.drawImage(
                                 instructionCanvas,
@@ -168,10 +199,16 @@ export namespace PatternUtils {
                             );
                             // addedPictures++;
                             if (i + 1 === correctedCanvas[1].length) {
-                                resolve(mainInstructionCanvas);
+                                allInstructionCanvases.push(
+                                    mainInstructionCanvas
+                                );
+                                if (gridNumber + 1 === gridHeight * gridWidth) {
+                                    resolve(allInstructionCanvases);
+                                }
+                                // resolve(mainInstructionCanvas);
                             }
-                        }
-                    );
+                        });
+                    }
                 }
             });
         }
@@ -452,10 +489,30 @@ export namespace PatternUtils {
             canvas: Canvas,
             colorScheme: ColorUtils.RGB[]
         ): [Canvas, Canvas[]] {
-            const imageCanvas = new Canvas(32, 32);
+            let imageWidth = 32;
+            let imageHeight = 32;
+            if (this.options.find((element) => element.name === "grid")) {
+                // grid. adjust the size accordingly.
+                const gridValue = this.options.find(
+                    (element) => element.name === "grid"
+                ).value;
+                if (
+                    Number.isInteger(parseInt(gridValue.split("x")[0], 10)) &&
+                    Number.isInteger(parseInt(gridValue.split("x")[1], 10))
+                ) {
+                    imageWidth = 32 * parseInt(gridValue.split("x")[0], 10);
+                    imageHeight = 32 * parseInt(gridValue.split("x")[1], 10);
+                }
+            }
+            const imageCanvas = new Canvas(imageWidth, imageHeight);
             const imagectx = imageCanvas.getContext("2d");
             imagectx.drawImage(canvas, 0, 0);
-            const imageData = imagectx.getImageData(0, 0, 32, 32);
+            const imageData = imagectx.getImageData(
+                0,
+                0,
+                imageWidth,
+                imageHeight
+            );
 
             const tempImageColors: ColorUtils.RGB[] = ColorUtils.colorSchemeFromImage(
                 canvas
@@ -498,10 +555,15 @@ export namespace PatternUtils {
                         break;
                     }
                 }
-                const colorCanvas = new Canvas(32, 32);
+                const colorCanvas = new Canvas(imageWidth, imageHeight);
                 const colorCtx = colorCanvas.getContext("2d");
                 colorCtx.drawImage(imageCanvas, 0, 0);
-                const colorImageData = colorCtx.getImageData(0, 0, 32, 32);
+                const colorImageData = colorCtx.getImageData(
+                    0,
+                    0,
+                    imageWidth,
+                    imageHeight
+                );
 
                 for (let j = 0; j < imageData.data.length; j += 4) {
                     const pixelColor = {
@@ -528,7 +590,7 @@ export namespace PatternUtils {
                     }
                 }
 
-                const brandNewCanvas = new Canvas(32, 32);
+                const brandNewCanvas = new Canvas(imageWidth, imageHeight);
                 const brandNewCtx = brandNewCanvas.getContext("2d");
                 brandNewCtx.putImageData(colorImageData, 0, 0);
                 // let hsvArray = ColorUtils.RGBtoHSV(currentRGB);

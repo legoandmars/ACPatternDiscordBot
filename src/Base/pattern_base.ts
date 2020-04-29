@@ -32,6 +32,15 @@ export class PatternBase extends Command {
                 },
             },
             {
+                name: "grid",
+                description: "Image grid size.",
+                arguments: {
+                    required: true,
+                    values: [],
+                    defaultValue: "1x1",
+                },
+            },
+            {
                 name: "imagequantization",
                 description: "The image quantization method used.",
                 arguments: {
@@ -105,6 +114,23 @@ export class PatternBase extends Command {
     run(command: ParsedCommand) {}
 
     sendURLs(urlArray: string[], command: ParsedCommand) {
+        command.message.channel.startTyping();
+        let gridWidth = 1;
+        let gridHeight = 1;
+        if (command.advancedArgs.find((element) => element.name === "grid")) {
+            // grid. adjust the size accordingly.
+            const gridValue = command.advancedArgs.find(
+                (element) => element.name === "grid"
+            ).value;
+            if (
+                Number.isInteger(parseInt(gridValue.split("x")[0], 10)) &&
+                Number.isInteger(parseInt(gridValue.split("x")[1], 10))
+            ) {
+                gridWidth = parseInt(gridValue.split("x")[0], 10);
+                gridHeight = parseInt(gridValue.split("x")[1], 10);
+            }
+        }
+
         const instructionsList: Canvas[] = [];
         for (let i = 0; i < urlArray.length; i++) {
             const url = urlArray[i];
@@ -113,15 +139,28 @@ export class PatternBase extends Command {
                 console.log("loaded image and canvas.");
                 console.log(url);
                 pattern.toInstructions().then((instructions) => {
-                    instructionsList[i] = instructions;
-                    let totalLoadedImages = 0;
-                    for (let j = 0; j < urlArray.length; j++) {
-                        if (instructionsList[j]) {
-                            totalLoadedImages += 1;
+                    for (let j = 0; j < instructions.length; j++) {
+                        instructionsList[instructions.length * i + j] =
+                            instructions[j];
+                        let totalLoadedImages = 0;
+                        for (
+                            let k = 0;
+                            k < urlArray.length * gridWidth * gridHeight;
+                            k++
+                        ) {
+                            if (instructionsList[k]) {
+                                totalLoadedImages += 1;
+                            }
                         }
-                    }
-                    if (totalLoadedImages === urlArray.length) {
-                        BotUtils.sendImages(instructionsList, command.message);
+                        if (
+                            totalLoadedImages ===
+                            urlArray.length * gridWidth * gridHeight
+                        ) {
+                            BotUtils.sendImages(
+                                instructionsList,
+                                command.message
+                            );
+                        }
                     }
                 });
             });
